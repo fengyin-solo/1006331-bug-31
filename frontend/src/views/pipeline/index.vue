@@ -38,6 +38,7 @@
         <tr>
           <th v-for="column in columns" :key="column">{{ column }}</th>
           <th>当前状态</th>
+          <th>管廊停用口径提示</th>
           <th>可执行动作</th>
         </tr>
       </thead>
@@ -45,6 +46,7 @@
         <tr v-for="row in rows" :key="String(row.id)">
           <td v-for="column in columns" :key="column">{{ row[column] ?? '—' }}</td>
           <td>{{ row.status }}</td>
+          <td><span v-if="notice(row)" class="stop-notice">{{ notice(row) }}</span><span v-else>—</span></td>
           <td class="row-actions">
             <button
               v-for="action in actions"
@@ -58,7 +60,7 @@
           </td>
         </tr>
         <tr v-if="!rows.length">
-          <td :colspan="columns.length + 2" class="empty-state">暂无入廊管线登记数据，可先登记入廊管线</td>
+          <td :colspan="columns.length + 3" class="empty-state">暂无入廊管线登记数据，可先登记入廊管线</td>
         </tr>
       </tbody>
     </table>
@@ -78,14 +80,19 @@ import {
   listEntries,
   moduleMeta,
   runAction as applyAction,
+  stoppedNoticeForRow,
 } from '@/api/local-service'
 import type { EntryRow } from '@/data/types'
 
 const meta = moduleMeta('pipeline')
-const columns = ["管线编号", "所属舱室", "管线类型", "权属单位", "入廊日期", "设计容量", "对接联系人", "管线状态"]
+const columns = ["管线编号", "所属管廊", "所属舱室", "管线类型", "权属单位", "入廊日期", "设计容量", "对接联系人", "管线状态"]
 const actions = ["登记入廊", "确认运行", "办理迁出"]
 const statuses = ["待登记", "已入廊", "运行中", "已迁出"]
 const stats = [{"label": "已入廊管线", "value": 0}, {"label": "运行中管线", "value": 0}, {"label": "待登记管线", "value": 0}]
+
+function notice(row: EntryRow): string {
+  return stoppedNoticeForRow(meta.key, row)
+}
 
 const rows = ref<EntryRow[]>([])
 const total = ref(0)

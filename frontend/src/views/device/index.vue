@@ -38,6 +38,7 @@
         <tr>
           <th v-for="column in columns" :key="column">{{ column }}</th>
           <th>当前状态</th>
+          <th>管廊停用口径提示</th>
           <th>可执行动作</th>
         </tr>
       </thead>
@@ -45,6 +46,7 @@
         <tr v-for="row in rows" :key="String(row.id)">
           <td v-for="column in columns" :key="column">{{ row[column] ?? '—' }}</td>
           <td>{{ row.status }}</td>
+          <td><span v-if="notice(row)" class="stop-notice">{{ notice(row) }}</span><span v-else>—</span></td>
           <td class="row-actions">
             <button
               v-for="action in actions"
@@ -58,7 +60,7 @@
           </td>
         </tr>
         <tr v-if="!rows.length">
-          <td :colspan="columns.length + 2" class="empty-state">暂无设备台账管理数据，可先登记管廊设备</td>
+          <td :colspan="columns.length + 3" class="empty-state">暂无设备台账管理数据，可先登记管廊设备</td>
         </tr>
       </tbody>
     </table>
@@ -78,14 +80,19 @@ import {
   listEntries,
   moduleMeta,
   runAction as applyAction,
+  stoppedNoticeForRow,
 } from '@/api/local-service'
 import type { EntryRow } from '@/data/types'
 
 const meta = moduleMeta('device')
-const columns = ["设备编号", "设备名称", "设备型号", "所属舱室", "投运日期", "保养周期", "上次保养日", "设备状态"]
+const columns = ["设备编号", "所属管廊", "设备名称", "设备型号", "所属舱室", "投运日期", "保养周期", "上次保养日", "设备状态"]
 const actions = ["登记运行", "完成保养", "报废设备"]
 const statuses = ["待保养", "运行中", "已保养", "已报废"]
 const stats = [{"label": "运行中设备", "value": 0}, {"label": "待保养设备", "value": 0}, {"label": "已报废设备", "value": 0}]
+
+function notice(row: EntryRow): string {
+  return stoppedNoticeForRow(meta.key, row)
+}
 
 const rows = ref<EntryRow[]>([])
 const total = ref(0)

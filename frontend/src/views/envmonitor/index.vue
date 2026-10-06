@@ -38,6 +38,7 @@
         <tr>
           <th v-for="column in columns" :key="column">{{ column }}</th>
           <th>当前状态</th>
+          <th>管廊停用口径提示</th>
           <th>可执行动作</th>
         </tr>
       </thead>
@@ -45,6 +46,7 @@
         <tr v-for="row in rows" :key="String(row.id)">
           <td v-for="column in columns" :key="column">{{ row[column] ?? '—' }}</td>
           <td>{{ row.status }}</td>
+          <td><span v-if="notice(row)" class="stop-notice">{{ notice(row) }}</span><span v-else>—</span></td>
           <td class="row-actions">
             <button
               v-for="action in actions"
@@ -58,7 +60,7 @@
           </td>
         </tr>
         <tr v-if="!rows.length">
-          <td :colspan="columns.length + 2" class="empty-state">暂无廊内环境监测数据，可先登记环境监测记录</td>
+          <td :colspan="columns.length + 3" class="empty-state">暂无廊内环境监测数据，可先登记环境监测记录</td>
         </tr>
       </tbody>
     </table>
@@ -78,14 +80,19 @@ import {
   listEntries,
   moduleMeta,
   runAction as applyAction,
+  stoppedNoticeForRow,
 } from '@/api/local-service'
 import type { EntryRow } from '@/data/types'
 
 const meta = moduleMeta('envmonitor')
-const columns = ["监测编号", "监测点位", "环境温度", "空气湿度", "氧气浓度", "有害气体浓度", "采集时间", "监测状态"]
+const columns = ["监测编号", "所属管廊", "监测点位", "环境温度", "空气湿度", "氧气浓度", "有害气体浓度", "采集时间", "监测状态"]
 const actions = ["提交采集", "判定正常", "标记超标"]
 const statuses = ["待采集", "已采集", "指标正常", "指标超标"]
 const stats = [{"label": "待采集点位", "value": 0}, {"label": "指标正常点位", "value": 0}, {"label": "指标超标点位", "value": 0}]
+
+function notice(row: EntryRow): string {
+  return stoppedNoticeForRow(meta.key, row)
+}
 
 const rows = ref<EntryRow[]>([])
 const total = ref(0)

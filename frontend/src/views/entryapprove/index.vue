@@ -18,6 +18,15 @@
       </article>
     </div>
 
+    <div v-if="dispatches.length" class="dispatch-box">
+      <h3>管廊停用派工清单（与「设施检修管理」入口同一份）</h3>
+      <div v-for="item in dispatches" :key="item.id" class="dispatch-item">
+        <div class="dispatch-title">{{ item.title }}</div>
+        <div>{{ item.opinion }}</div>
+        <div class="dispatch-meta">停用生效日 {{ item.bizDate }} · 来源：{{ item.source }}</div>
+      </div>
+    </div>
+
     <p class="status-legend">
       <span v-for="item in statusSummary" :key="item.status" class="legend-item">
         {{ item.status }}：{{ item.count }}
@@ -74,12 +83,14 @@
 import { computed, onMounted, ref } from 'vue'
 
 import {
+  dispatchList,
   downloadEntries,
   listEntries,
   moduleMeta,
+  newSubmitNo,
   runAction as applyAction,
 } from '@/api/local-service'
-import type { EntryRow } from '@/data/types'
+import type { DispatchItem, EntryRow } from '@/data/types'
 
 const meta = moduleMeta('entryapprove')
 const columns = ["申请编号", "申请单位", "作业舱室", "作业类型", "作业人数", "安全措施", "审批人员", "审批状态"]
@@ -90,6 +101,7 @@ const stats = [{"label": "待审批申请", "value": 0}, {"label": "已批准申
 const rows = ref<EntryRow[]>([])
 const total = ref(0)
 const errorMessage = ref('')
+const dispatches = ref<DispatchItem[]>([])
 const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
 const statusSummary = computed(() =>
@@ -114,7 +126,7 @@ function openCreate() {
 
 function runAction(action: string, row: EntryRow) {
   errorMessage.value = ''
-  const result = applyAction(meta.key, Number(row.id), action)
+  const result = applyAction(meta.key, Number(row.id), action, { submitNo: newSubmitNo('ACT') })
   if (!result.ok) {
     errorMessage.value = result.message
     return
@@ -128,6 +140,7 @@ function reload() {
     const payload = listEntries(meta.key, filters.value)
     rows.value = payload.items
     total.value = payload.total
+    dispatches.value = dispatchList('entryapprove')
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '入廊作业审批列表读取失败'
   }
