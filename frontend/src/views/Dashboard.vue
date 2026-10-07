@@ -29,7 +29,7 @@
       </tbody>
     </table>
     <footer class="page-foot">
-      <span>数据保存在本机浏览器里，换浏览器或清缓存会回到示例数据</span>
+      <span>第二版统一口径已生效：数据保存在本机浏览器（world:v2），存量记录按业务发生日完成整批补录；重置或清缓存会回到示例数据并重跑补录。</span>
     </footer>
   </section>
 </template>

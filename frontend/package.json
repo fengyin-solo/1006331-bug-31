@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "verify:rules": "esbuild scripts/verify-rules.ts --bundle --platform=node --format=cjs | node"
   },
   "dependencies": {
     "pinia": "^2.1.7",
